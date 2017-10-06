@@ -1,9 +1,12 @@
+#pragma once
+
 #include <SFML/Graphics.hpp>
+#include "math.hpp"
 
 class Triangle2D : public sf::Shape 
 {
 public:
-    Triangle2D (sf::Vector2f p1, sf::Vector2f p2, sf::Vector2f p3)
+    Triangle2D (idx::Vector2 p1, idx::Vector2 p2, idx::Vector2 p3)
     {
         vertices[0] = p1;
         vertices[1] = p2;
@@ -18,9 +21,9 @@ public:
 
     virtual sf::Vector2f getPoint(std::size_t index) const
     {
-        return vertices[index];
+        return sf::Vector2f(vertices[index].x, vertices[index].y);
     }
 private:
-    sf::Vector2f vertices[3];
+    idx::Vector2 vertices[3];
 
 } ;
