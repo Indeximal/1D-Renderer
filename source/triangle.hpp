@@ -6,7 +6,7 @@
 class Triangle2D : public sf::Shape 
 {
 public:
-    Triangle2D (idx::Vector2 p1, idx::Vector2 p2, idx::Vector2 p3)
+    Triangle2D (b2d::Vector2 p1, b2d::Vector2 p2, b2d::Vector2 p3)
     {
         vertices[0] = p1;
         vertices[1] = p2;
@@ -24,6 +24,6 @@ public:
         return sf::Vector2f(vertices[index].x, vertices[index].y);
     }
 private:
-    idx::Vector2 vertices[3];
+    b2d::Vector2 vertices[3];
 
 } ;

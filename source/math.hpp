@@ -1,6 +1,6 @@
 #pragma once
 
-namespace idx 
+namespace b2d 
 {
     class Vector3 
     {
@@ -80,12 +80,38 @@ namespace idx
             columns[2] = Vector3(0, 0, 1);
         }
 
-        static Matrix3 scale(float s)
+        void setCell(float val, int col, int row)
+        {
+            if (row == 0){
+                columns[col].x = val;
+            } else if (row == 1){
+                columns[col].y = val;
+            } else if (row == 2) {
+                columns[col].z = val;
+            }
+        }
+
+        static Matrix3 scale2d(float s)
         {
             Matrix3 mat;
-            mat.columns[0] = Vector3(s, 0, 0);
-            mat.columns[1] = Vector3(0, s, 0);
-            mat.columns[2] = Vector3(0, 0, 1);
+            mat.setCell(s, 0, 0);
+            mat.setCell(s, 1, 1);
+            return mat;
+        }
+
+        static Matrix3 scale2d(float x, float y)
+        {
+            Matrix3 mat;
+            mat.setCell(x, 0, 0);
+            mat.setCell(y, 1, 1);
+            return mat;
+        }
+
+        static Matrix3 translate2d(float x, float y)
+        {
+            Matrix3 mat;
+            mat.setCell(x, 2, 0);
+            mat.setCell(y, 2, 1);
             return mat;
         }
 
@@ -98,6 +124,15 @@ namespace idx
         {
             Vector3 u = operator*(Vector3(v.x, v.y, 1));
             return Vector2(u.x / u.z, u.y / u.z);
+        }
+
+        Matrix3 operator*(Matrix3 other)
+        {
+            Matrix3 mat;
+            mat.columns[0] = *this * (other.columns[0]);
+            mat.columns[1] = *this * (other.columns[1]);
+            mat.columns[2] = *this * (other.columns[2]);
+            return mat;
         }
 
     };
