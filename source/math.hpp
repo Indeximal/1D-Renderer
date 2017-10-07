@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cmath>
+
 namespace b2d 
 {
     class Vector3 
@@ -112,6 +114,17 @@ namespace b2d
             Matrix3 mat;
             mat.setCell(x, 2, 0);
             mat.setCell(y, 2, 1);
+            return mat;
+        }
+
+        static Matrix3 rotate2d(float angle)
+        {
+            Matrix3 mat;
+            if (angle == 0) return mat;
+            mat.setCell(std::cos(angle), 0, 0);
+            mat.setCell(std::sin(angle), 0, 1);
+            mat.setCell(std::cos(angle + 3.14159 / 2), 1, 0);
+            mat.setCell(std::sin(angle + 3.14159 / 2), 1, 1);
             return mat;
         }
 

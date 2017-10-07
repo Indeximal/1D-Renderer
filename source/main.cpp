@@ -1,5 +1,7 @@
 
 #include <vector>
+#include <chrono>
+#include <cmath>
 
 #include <SFML/Graphics.hpp>
 
@@ -13,7 +15,8 @@ int main() {
     window.setFramerateLimit(60);
  
     std::vector<b2d::Vector2> vertices = {
-        b2d::Vector2(0, 1),
+        b2d::Vector2(1, 1),
+        b2d::Vector2(-1, 1),
         b2d::Vector2(-1, -1),
         b2d::Vector2(1, -1)
     };
@@ -21,7 +24,8 @@ int main() {
     std::vector<size_t> indices = {
         0, 1,
         1, 2,
-        2, 0
+        2, 3,
+        3, 0
     };
 
     float gridExtend = 3;
@@ -39,14 +43,10 @@ int main() {
         1, 3,  4, 5,  6, 7
     };
 
-    b2d::Matrix3 modelTranslation = b2d::Matrix3::translate2d(0, 0);
-    b2d::Matrix3 modelScale = b2d::Matrix3::scale2d(1);
-    b2d::Matrix3 modelMat = modelTranslation * modelScale;
-
     b2d::Matrix3 viewMat = b2d::Matrix3::translate2d(250, 250) * b2d::Matrix3::scale2d(100) * b2d::Matrix3::scale2d(1, -1);
 
-    b2d::Matrix3 mat1 = viewMat * modelMat;
-    b2d::Matrix3 matGrid = viewMat;
+    auto lastFrame = std::chrono::high_resolution_clock::now();
+    auto startTime = std::chrono::high_resolution_clock::now();
 
     while (window.isOpen()) {
 
@@ -57,7 +57,16 @@ int main() {
             }
         }
 
+        auto thisFrame = std::chrono::high_resolution_clock::now();
+        double tslf = std::chrono::duration_cast<std::chrono::microseconds>(thisFrame - lastFrame).count() / 1000000.0;
+        double tss = std::chrono::duration_cast<std::chrono::microseconds>(thisFrame - startTime).count() / 1000000.0;
+
         window.clear();
+
+        b2d::Matrix3 modelTranslation = b2d::Matrix3::translate2d(1, 0);
+        b2d::Matrix3 modelScale = b2d::Matrix3::scale2d(0.5);
+        b2d::Matrix3 modelRotation = b2d::Matrix3::rotate2d(tss);
+        b2d::Matrix3 mat1 = viewMat * modelTranslation * modelRotation * modelScale;
 
         std::vector<sf::Vertex> sfVerts;
 
@@ -68,13 +77,14 @@ int main() {
         }
         for (size_t index : indicesGrid) {
             b2d::Vector2 pos = verticesGrid.at(index);
-            pos = matGrid * pos; // VertexShader
+            pos = viewMat * pos; // VertexShader
             sfVerts.push_back(sf::Vertex(sf::Vector2f(pos.x, pos.y), sf::Color::White));
         }
 
         window.draw(sfVerts.data(), sfVerts.size(), sf::PrimitiveType::Lines);
 
         window.display();
+        lastFrame = thisFrame;
     }
     return 0;
 }
