@@ -6,6 +6,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "math.hpp"
+#include "model.hpp"
 
 int main() {
     sf::ContextSettings settings;
@@ -14,61 +15,28 @@ int main() {
     sf::RenderWindow window(sf::VideoMode(1000, 500), "2D Perspective", sf::Style::Default, settings);
     window.setFramerateLimit(60);
  
-    std::vector<b2d::Vector2> vertices = {
-        b2d::Vector2(1, 1),
-        b2d::Vector2(-1, 1),
-        b2d::Vector2(-1, -1),
-        b2d::Vector2(1, -1)
-    };
-
-    std::vector<size_t> indices = {
-        0, 1,
-        1, 2,
-        2, 3,
-        3, 0
-    };
-
-    std::vector<b2d::Vector2> cameraVerts = {
-        b2d::Vector2(0, 0), b2d::Vector2(1, 2), b2d::Vector2(-1, 2),
-        b2d::Vector2(1, 0), b2d::Vector2(-1, 0),
-        b2d::Vector2(1, -3), b2d::Vector2(-1, -3)
-    };
-
-    std::vector<size_t> cameraLines = {
-        0, 1,  0, 2,
-        3, 4,  4, 6,  6, 5,  5, 3
-    };
-
-    float gridExtend = 2.5;
-    float gridOneWidth = 0.1;
-    std::vector<b2d::Vector2> verticesGrid = {
-        b2d::Vector2(0, gridExtend*3), b2d::Vector2(gridExtend, 0), b2d::Vector2(0, -gridExtend), b2d::Vector2(-gridExtend, 0), // 0-3
-        b2d::Vector2(1, gridOneWidth), b2d::Vector2(1, -gridOneWidth), // 4,5
-        b2d::Vector2(-1, gridOneWidth), b2d::Vector2(-1, -gridOneWidth), // 6,7
-        b2d::Vector2(gridOneWidth, 1), b2d::Vector2(-gridOneWidth, 1), // 8,9
-        b2d::Vector2(gridOneWidth, -1), b2d::Vector2(-gridOneWidth, -1) // 10,11
-    };
-
-    std::vector<size_t> indicesGrid = {
-        0, 2,  8, 9,  10, 11,
-        1, 3,  4, 5,  6, 7
-    };
 
     b2d::Matrix3 topDownViewMat = b2d::Matrix3::translate2d(250, 250) * b2d::Matrix3::scale2d(100) * b2d::Matrix3::scale2d(1, -1);
     b2d::Matrix3 rTDViewMat = b2d::Matrix3::translate2d(750, 400) * b2d::Matrix3::scale2d(100) * b2d::Matrix3::scale2d(1, -1);
 
-    b2d::Matrix3 modelTranslation = b2d::Matrix3::translate2d(0, 0);
-    b2d::Matrix3 modelScale = b2d::Matrix3::scale2d(0.8);
-    b2d::Matrix3 modelRotation = b2d::Matrix3::rotate2d(0);
-    b2d::Matrix3 modelMat = modelTranslation * modelRotation * modelScale;
+
+    b2d::Model grid = b2d::Model::Grid(2.5, 2.5, 5, 2, 0.1);
+    grid.setColor(0, 0, 0);
+
+    b2d::Model square = b2d::Model::Square();
+    square.setColor(0, 1, 0);
+    square.setPosition(0, 0);
+    square.setScale(0.8);
+    square.setRotation(0);
 
     b2d::Vector2 cameraPos(2, 0);
     float cameraRot = 3.14 / 2;
 
-    b2d::Matrix3 cameraTranslation = b2d::Matrix3::translate2d(cameraPos.x, cameraPos.y);
-    b2d::Matrix3 cameraScale = b2d::Matrix3::scale2d(0.1);
-    b2d::Matrix3 cameraRotation = b2d::Matrix3::rotate2d(cameraRot);
-    b2d::Matrix3 cameraMat = cameraTranslation * cameraRotation * cameraScale;
+    b2d::Model camera = b2d::Model::Camera();
+    camera.setColor(0, 0, 1);
+    camera.setPosition(cameraPos);
+    camera.setScale(0.1);
+    camera.setRotation(cameraRot);
 
     b2d::Matrix3 viewT = b2d::Matrix3::translate2d(-cameraPos.x, -cameraPos.y);
     b2d::Matrix3 viewR = b2d::Matrix3::rotate2d(-cameraRot);
@@ -76,8 +44,8 @@ int main() {
 
     float perspNearClip = 0.1;
     float perspFarClip = 3;
-    float perspFOV = 90 / 180 * 3.14;
     float zoomFactor = 0.8; //std::atan(3.14 - perspFOV)
+    // float perspFOV = 90 / 180 * 3.14;
 
     b2d::Matrix3 perspTranslation = b2d::Matrix3::translate2d(0, -perspNearClip);
     b2d::Matrix3 perspScale = b2d::Matrix3::scale2d(zoomFactor, 1 / (perspFarClip - perspNearClip)); //TODO x-axis
@@ -104,19 +72,17 @@ int main() {
         { // Left: Top Down
             std::vector<sf::Vertex> sfVerts;
 
-            for (size_t index : indices) {
-                b2d::Vector2 pos = vertices.at(index);
-                pos = topDownViewMat * modelMat * pos; // VertexShader
-                sfVerts.push_back(sf::Vertex(sf::Vector2f(pos.x, pos.y), sf::Color::Green));
+            for (b2d::Vector2 vert : square.getWorldVertices()) {
+                b2d::Vector2 pos = topDownViewMat * vert;
+                b2d::Vector3 col = square.getColor();
+                sfVerts.push_back(sf::Vertex(sf::Vector2f(pos.x, pos.y), sf::Color(col.x, col.y, col.z)));
             }
-            for (size_t index : indicesGrid) {
-                b2d::Vector2 pos = verticesGrid.at(index);
-                pos = topDownViewMat * pos; // VertexShader
+            for (b2d::Vector2 vert : grid.getWorldVertices()) {
+                b2d::Vector2 pos = topDownViewMat * vert;
                 sfVerts.push_back(sf::Vertex(sf::Vector2f(pos.x, pos.y), sf::Color::Black));
             }
-            for (size_t index : cameraLines) {
-                b2d::Vector2 pos = cameraVerts.at(index);
-                pos = topDownViewMat * cameraMat * pos; // VertexShader
+            for (b2d::Vector2 vert : camera.getWorldVertices()) {
+                b2d::Vector2 pos = topDownViewMat * vert;
                 sfVerts.push_back(sf::Vertex(sf::Vector2f(pos.x, pos.y), sf::Color::Blue));
             }
 
@@ -130,26 +96,22 @@ int main() {
 
         { // Right: Top Down Camera
             std::vector<sf::Vertex> sfVerts;
-        
-            for (size_t index : indices) { // Perspective
-                b2d::Vector2 pos = vertices.at(index);
-                pos = viewMat * modelMat * pos; // VertexShader
+
+            for (b2d::Vector2 vert : square.getWorldVertices()) { // Perspective
+                b2d::Vector2 pos = viewMat * vert; // VertexShader
                 b2d::Vector2 persp = rTDViewMat * perspMat * b2d::Vector2(pos.x / pos.y, pos.y);
                 sfVerts.push_back(sf::Vertex(sf::Vector2f(persp.x, persp.y), sf::Color::Green));
             }
-            for (size_t index : indices) {
-                b2d::Vector2 pos = vertices.at(index);
-                pos = rTDViewMat * perspMat * viewMat * modelMat * pos; // VertexShader
+            for (b2d::Vector2 vert : square.getWorldVertices()) {
+                b2d::Vector2 pos = rTDViewMat * perspMat * viewMat * vert; // VertexShader
                 sfVerts.push_back(sf::Vertex(sf::Vector2f(pos.x, pos.y), sf::Color::Cyan));
             }
-            for (size_t index : indicesGrid) {
-                b2d::Vector2 pos = verticesGrid.at(index);
-                pos = rTDViewMat * pos; // VertexShader
+            for (b2d::Vector2 vert : grid.getWorldVertices()) {
+                b2d::Vector2 pos = rTDViewMat * vert; // VertexShader
                 sfVerts.push_back(sf::Vertex(sf::Vector2f(pos.x, pos.y), sf::Color::Black));
             }
-            for (size_t index : cameraLines) {
-                b2d::Vector2 pos = cameraVerts.at(index);
-                pos = rTDViewMat * viewMat * cameraMat * pos; // VertexShader
+            for (b2d::Vector2 vert : camera.getWorldVertices()) {
+                b2d::Vector2 pos = rTDViewMat * viewMat * vert; // VertexShader
                 sfVerts.push_back(sf::Vertex(sf::Vector2f(pos.x, pos.y), sf::Color::Blue));
             }
         
