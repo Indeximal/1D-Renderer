@@ -11,7 +11,7 @@ int main() {
     sf::ContextSettings settings;
     settings.antialiasingLevel = 4;
 
-    sf::RenderWindow window(sf::VideoMode(500, 500), "2D Perspective", sf::Style::Default, settings);
+    sf::RenderWindow window(sf::VideoMode(1000, 500), "2D Perspective", sf::Style::Default, settings);
     window.setFramerateLimit(60);
  
     std::vector<b2d::Vector2> vertices = {
@@ -28,10 +28,21 @@ int main() {
         3, 0
     };
 
-    float gridExtend = 3;
+    std::vector<b2d::Vector2> cameraVerts = {
+        b2d::Vector2(0, 0), b2d::Vector2(1, 2), b2d::Vector2(-1, 2),
+        b2d::Vector2(1, 0), b2d::Vector2(-1, 0),
+        b2d::Vector2(1, -3), b2d::Vector2(-1, -3)
+    };
+
+    std::vector<size_t> cameraLines = {
+        0, 1,  0, 2,
+        3, 4,  4, 6,  6, 5,  5, 3
+    };
+
+    float gridExtend = 2.5;
     float gridOneWidth = 0.1;
     std::vector<b2d::Vector2> verticesGrid = {
-        b2d::Vector2(0, gridExtend), b2d::Vector2(gridExtend, 0), b2d::Vector2(0, -gridExtend), b2d::Vector2(-gridExtend, 0), // 0-3
+        b2d::Vector2(0, gridExtend*3), b2d::Vector2(gridExtend, 0), b2d::Vector2(0, -gridExtend), b2d::Vector2(-gridExtend, 0), // 0-3
         b2d::Vector2(1, gridOneWidth), b2d::Vector2(1, -gridOneWidth), // 4,5
         b2d::Vector2(-1, gridOneWidth), b2d::Vector2(-1, -gridOneWidth), // 6,7
         b2d::Vector2(gridOneWidth, 1), b2d::Vector2(-gridOneWidth, 1), // 8,9
@@ -43,7 +54,22 @@ int main() {
         1, 3,  4, 5,  6, 7
     };
 
-    b2d::Matrix3 viewMat = b2d::Matrix3::translate2d(250, 250) * b2d::Matrix3::scale2d(100) * b2d::Matrix3::scale2d(1, -1);
+    b2d::Matrix3 topDownViewMat = b2d::Matrix3::translate2d(250, 250) * b2d::Matrix3::scale2d(100) * b2d::Matrix3::scale2d(1, -1);
+    b2d::Matrix3 rTDViewMat = b2d::Matrix3::translate2d(750, 400) * b2d::Matrix3::scale2d(100) * b2d::Matrix3::scale2d(1, -1);
+
+    b2d::Matrix3 modelTranslation = b2d::Matrix3::translate2d(0, 0);
+    b2d::Matrix3 modelScale = b2d::Matrix3::scale2d(1);
+    b2d::Matrix3 modelRotation = b2d::Matrix3::rotate2d(0);
+    b2d::Matrix3 modelMat = modelTranslation * modelRotation * modelScale;
+
+    b2d::Matrix3 cameraTranslation = b2d::Matrix3::translate2d(1.5, -2);
+    b2d::Matrix3 cameraScale = b2d::Matrix3::scale2d(0.1);
+    b2d::Matrix3 cameraRotation = b2d::Matrix3::rotate2d(3.14 / 4);
+    b2d::Matrix3 cameraMat = cameraTranslation * cameraRotation * cameraScale;
+
+    b2d::Matrix3 viewT = b2d::Matrix3::translate2d(-1.5, 2);
+    b2d::Matrix3 viewR = b2d::Matrix3::rotate2d(- 3.14 / 4);
+    b2d::Matrix3 viewMat = viewR * viewT; // Inversed
 
     auto lastFrame = std::chrono::high_resolution_clock::now();
     auto startTime = std::chrono::high_resolution_clock::now();
@@ -61,27 +87,56 @@ int main() {
         double tslf = std::chrono::duration_cast<std::chrono::microseconds>(thisFrame - lastFrame).count() / 1000000.0;
         double tss = std::chrono::duration_cast<std::chrono::microseconds>(thisFrame - startTime).count() / 1000000.0;
 
-        window.clear();
+        window.clear(sf::Color::White);
 
-        b2d::Matrix3 modelTranslation = b2d::Matrix3::translate2d(1, 0);
-        b2d::Matrix3 modelScale = b2d::Matrix3::scale2d(0.5);
-        b2d::Matrix3 modelRotation = b2d::Matrix3::rotate2d(tss);
-        b2d::Matrix3 mat1 = viewMat * modelTranslation * modelRotation * modelScale;
+        { // Left: Top Down
+            std::vector<sf::Vertex> sfVerts;
 
-        std::vector<sf::Vertex> sfVerts;
+            for (size_t index : indices) {
+                b2d::Vector2 pos = vertices.at(index);
+                pos = topDownViewMat * modelMat * pos; // VertexShader
+                sfVerts.push_back(sf::Vertex(sf::Vector2f(pos.x, pos.y), sf::Color::Green));
+            }
+            for (size_t index : indicesGrid) {
+                b2d::Vector2 pos = verticesGrid.at(index);
+                pos = topDownViewMat * pos; // VertexShader
+                sfVerts.push_back(sf::Vertex(sf::Vector2f(pos.x, pos.y), sf::Color::Black));
+            }
+            for (size_t index : cameraLines) {
+                b2d::Vector2 pos = cameraVerts.at(index);
+                pos = topDownViewMat * cameraMat * pos; // VertexShader
+                sfVerts.push_back(sf::Vertex(sf::Vector2f(pos.x, pos.y), sf::Color::Blue));
+            }
 
-        for (size_t index : indices) {
-            b2d::Vector2 pos = vertices.at(index);
-            pos = mat1 * pos; // VertexShader
-            sfVerts.push_back(sf::Vertex(sf::Vector2f(pos.x, pos.y), sf::Color::Green));
+            window.draw(sfVerts.data(), sfVerts.size(), sf::PrimitiveType::Lines);
         }
-        for (size_t index : indicesGrid) {
-            b2d::Vector2 pos = verticesGrid.at(index);
-            pos = viewMat * pos; // VertexShader
-            sfVerts.push_back(sf::Vertex(sf::Vector2f(pos.x, pos.y), sf::Color::White));
-        }
 
-        window.draw(sfVerts.data(), sfVerts.size(), sf::PrimitiveType::Lines);
+        sf::RectangleShape rRect(sf::Vector2f(500, 500));
+        rRect.setPosition(sf::Vector2f(500, 0));
+        rRect.setFillColor(sf::Color::White);
+        window.draw(rRect);
+
+        { // Right: Top Down Camera
+            std::vector<sf::Vertex> sfVerts;
+        
+            for (size_t index : indices) {
+                b2d::Vector2 pos = vertices.at(index);
+                pos = rTDViewMat * viewMat * modelMat * pos; // VertexShader
+                sfVerts.push_back(sf::Vertex(sf::Vector2f(pos.x, pos.y), sf::Color::Green));
+            }
+            for (size_t index : indicesGrid) {
+                b2d::Vector2 pos = verticesGrid.at(index);
+                pos = rTDViewMat * pos; // VertexShader
+                sfVerts.push_back(sf::Vertex(sf::Vector2f(pos.x, pos.y), sf::Color::Black));
+            }
+            for (size_t index : cameraLines) {
+                b2d::Vector2 pos = cameraVerts.at(index);
+                pos = rTDViewMat * viewMat * cameraMat * pos; // VertexShader
+                sfVerts.push_back(sf::Vertex(sf::Vector2f(pos.x, pos.y), sf::Color::Blue));
+            }
+        
+            window.draw(sfVerts.data(), sfVerts.size(), sf::PrimitiveType::Lines);
+        }
 
         window.display();
         lastFrame = thisFrame;
