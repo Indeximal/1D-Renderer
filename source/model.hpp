@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "math.hpp"
+#include "b2dColor.hpp"
 
 namespace b2d
 {
@@ -16,7 +17,7 @@ namespace b2d
         b2d::Matrix3 rotation;
         b2d::Matrix3 scale;
 
-        b2d::Vector3 color;
+        b2d::Color color;
         
     public:
         Model()
@@ -28,14 +29,14 @@ namespace b2d
         {
         }
 
-        void setColor(b2d::Vector3 col)
+        void setColor(b2d::Color col)
         {
             color = col;
         }
 
         void setColor(float r, float g, float b)
         {
-            color = b2d::Vector3(r, g, b);
+            color = b2d::Color(r, g, b);
         }
 
         void setScale(float x, float y)
@@ -102,7 +103,7 @@ namespace b2d
             return translation * rotation * scale;
         }
 
-        b2d::Vector3 getColor()
+        b2d::Color getColor()
         {
             return color;
         }
