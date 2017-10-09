@@ -4,9 +4,9 @@
 #include <string>
 #include <vector>
 
-#include "model.hpp"
-#include "math.hpp"
-#include "b2dColor.hpp"
+#include "bModel.hpp"
+#include "bMath.hpp"
+#include "bColor.hpp"
 
 namespace b2d  // Basic 2D
 {

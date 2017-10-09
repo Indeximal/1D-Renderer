@@ -3,9 +3,10 @@
 #include <chrono>
 #include <cmath>
 
-#include "math.hpp"
-#include "model.hpp"
-#include "screen.hpp"
+#include "bMath.hpp"
+#include "bModel.hpp"
+#include "bScreen.hpp"
+#include "bVertex.hpp"
 
 int main() {
     int width = 1000;

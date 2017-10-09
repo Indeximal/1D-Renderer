@@ -2,8 +2,8 @@
 
 #include <vector>
 
-#include "math.hpp"
-#include "b2dColor.hpp"
+#include "bMath.hpp"
+#include "bColor.hpp"
 
 namespace b2d
 {

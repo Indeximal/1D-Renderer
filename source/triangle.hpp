@@ -1,7 +1,7 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
-#include "math.hpp"
+#include "bMath.hpp"
 
 class Triangle2D : public sf::Shape 
 {
