@@ -63,9 +63,24 @@ namespace b2d
             return Vector2(x + other.x, y + other.y);
         }
 
+        Vector2 operator-(Vector2 other)
+        {
+            return Vector2(x - other.x, y - other.y);
+        }
+
         bool operator==(Vector2 other)
         {
             return x == other.x && y == other.y;
+        }
+
+        float dot(Vector2 other)
+        {
+            return x * other.x + y * other.y;
+        }
+
+        float getLenght()
+        {
+            return std::sqrt(x * x + y + y);
         }
 
         Vector2 toNormal()
@@ -75,9 +90,9 @@ namespace b2d
             return Vector2(x / l, y / l);
         }
 
-        float getLenght()
+        static Vector2 Direction(Vector2 from, Vector2 to)
         {
-            return std::sqrt(x * x + y + y);
+            return (to - from).toNormal();
         }
 
         static Vector2 Zero()

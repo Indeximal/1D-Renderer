@@ -5,9 +5,6 @@
 #include <vector>
 
 #include "bModel.hpp"
-#include "bMath.hpp"
-#include "bColor.hpp"
-#include "bVertex.hpp"
 
 namespace b2d  // Basic 2D
 {
@@ -21,19 +18,45 @@ namespace b2d  // Basic 2D
         Screen(std::string name, int width, int height)
         : m_screenSize(sf::VideoMode(width, height))
         {
-            m_settings.antialiasingLevel = 4;
+            m_settings.antialiasingLevel = 1;
             m_window = new sf::RenderWindow(m_screenSize, name, sf::Style::Default, m_settings);
             m_window->setFramerateLimit(60);
         }
 
-        void setPixel(int x, int y, Color color)
+        void setPixels(int x, int y, int w, int h, b2d::Color pixels[], int pixelCount)
         {
+            static_assert((sizeof(b2d::Color) == sizeof(uint8_t) * 4) && (sizeof(sf::Uint8) == sizeof(uint8_t)), "Cant convert b2d::Color into a image");
+            if (w * h != pixelCount)
+            {
+                throw std::logic_error("Pixel count doesn't match w * h");
+            }
+            sf::Uint8* data = reinterpret_cast<sf::Uint8*>(pixels);
+
+            sf::Image image; // sfml cpu
+            image.create(w, h, data);
+            sf::Texture tex; // gpu
+            tex.loadFromImage(image);
+            sf::Sprite sprite(tex); // position data
+            sprite.setPosition(x, y);
+            m_window->draw(sprite); // draw
+        }
+
+        //TODO remove
+        /*
+        void setPixelsDeprecated(int x, int y, int w, int h, b2d::Color color)
+        {
+            throw std::logic_error("deprecated setPixels using RectangleShape");
             sf::Color c(color.r, color.g, color.b, color.a);
-            sf::RectangleShape pixel(sf::Vector2f(1,1));
+            sf::RectangleShape pixel(sf::Vector2f(w, h));
             pixel.setPosition(x, y);
             pixel.setFillColor(c);
             m_window->draw(pixel);
         }
+
+        void setPixelDeprecated(int x, int y, b2d::Color color)
+        {
+            setPixels(x, y, 1, 1, color);
+        }*/
 
         void drawLines(std::vector<b2d::Vector2> verts, b2d::Color col)
         {
@@ -74,6 +97,7 @@ namespace b2d  // Basic 2D
         {
             sf::Event event;
             while (m_window->pollEvent(event)) {
+                // std::cout << event.type << std::endl;
                 if (event.type == sf::Event::Closed) {
                     return true;
                 }

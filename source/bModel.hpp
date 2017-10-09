@@ -2,8 +2,6 @@
 
 #include <vector>
 
-#include "bMath.hpp"
-#include "bColor.hpp"
 #include "bVertex.hpp"
 
 namespace b2d
