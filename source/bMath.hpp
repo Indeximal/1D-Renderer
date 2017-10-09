@@ -68,6 +68,24 @@ namespace b2d
             return x == other.x && y == other.y;
         }
 
+        Vector2 toNormal()
+        {
+            float l = getLenght();
+            if (l == 0) return Zero();
+            return Vector2(x / l, y / l);
+        }
+
+        float getLenght()
+        {
+            return std::sqrt(x * x + y + y);
+        }
+
+        static Vector2 Zero()
+        {
+            static const Vector2 vec = Vector2(0, 0);
+            return vec;
+        }
+
     };
 
     class Matrix3 

@@ -10,7 +10,7 @@
 
 int main() {
     int width = 1000;
-    int posYframe = 560;
+    int posYframe = 575;
 
     b2d::Screen screen("2D Perspective", width, 600);
 
@@ -18,28 +18,20 @@ int main() {
     b2d::Matrix3 rTDViewMat = b2d::Matrix3::translate2d(750, 400) * b2d::Matrix3::scale2d(150) * b2d::Matrix3::scale2d(1, -1);
 
     b2d::Model gridL = b2d::Model::Grid(2.5, 0.1);
-    gridL.setColor(b2d::Color::Black());
     b2d::Model gridR = b2d::Model::Grid(2, 2, 5, 1, 0.1);
-    gridR.setColor(b2d::Color::Black());
 
     std::vector<b2d::Model> models;
     {
-        b2d::Model square = b2d::Model::Square();
-        square.setColor(b2d::Color::Green());
+        b2d::Model square = b2d::Model::Rectangle(1.3, 1.8, b2d::Color::Green());
         square.setPosition(1, 2);
-        square.setScale(0.8, 1.1);
         square.setRotation(2);
         models.push_back(square);
-        b2d::Model square2 = b2d::Model::Square();
-        square2.setColor(b2d::Color::Green());
+        b2d::Model square2 = b2d::Model::Rectangle(0.7, 0.9, b2d::Color::Red());
         square2.setPosition(-0.5, 0.5);
-        square2.setScale(0.4, 0.5);
         square2.setRotation(1);
         models.push_back(square2);
-        b2d::Model square3 = b2d::Model::Square();
-        square3.setColor(b2d::Color::Green());
+        b2d::Model square3 = b2d::Model::Square(1.4, b2d::Color::Blue());
         square3.setPosition(0.6, -1.2);
-        square3.setScale(0.7);
         square3.setRotation(3);
         models.push_back(square3);
     }
@@ -47,10 +39,8 @@ int main() {
     b2d::Vector2 cameraPos(2, 0);
     float cameraRot = 3.14 / 2;
 
-    b2d::Model camera = b2d::Model::Camera();
-    camera.setColor(0, 0, 255);
+    b2d::Model camera = b2d::Model::Camera(0.1, b2d::Color::Blue());
     camera.setPosition(cameraPos);
-    camera.setScale(0.1);
     camera.setRotation(cameraRot);
 
     b2d::Matrix3 viewT = b2d::Matrix3::translate2d(-cameraPos.x, -cameraPos.y);
@@ -89,13 +79,13 @@ int main() {
 
         // Right: Top Down Camera 
         std::vector<b2d::Vector2> tdVerts;
-        std::vector<b2d::Vector2> verts;
+        std::vector<b2d::Vertex> verts;
         for (b2d::Model model : models)
         {
-            for (b2d::Vector2 vert : model.getWorldVertices()) { // Perspective
-                b2d::Vector2 pos = viewMat * vert; // VertexShader
+            for (b2d::Vertex vert : model.getWorldVertices()) { // Perspective
+                b2d::Vector2 pos = viewMat * vert.position; // VertexShader
                 b2d::Vector2 persp = perspMat * b2d::Vector2(pos.x / std::abs(pos.y), pos.y);
-                verts.push_back(persp);
+                verts.push_back(b2d::Vertex(persp, vert.color, vert.normal));
                 tdVerts.push_back(rTDViewMat * persp);
             }
         }
@@ -111,15 +101,15 @@ int main() {
 
         for (int i = 0; i < verts.size(); i += 2)
         {
-            b2d::Vector2 v1 = verts[i];
-            b2d::Vector2 v2 = verts[i+1];
-            if (v1.x > v2.x){
-                b2d::Vector2 tmp = v2;
+            b2d::Vertex v1 = verts[i];
+            b2d::Vertex v2 = verts[i+1];
+            if (v1.position.x > v2.position.x){
+                b2d::Vertex tmp = v2;
                 v2 = v1;
                 v1 = tmp;
             }
-            int leftEdge = (v1.x + 1) / 2 * width;
-            int rightEdge = (v2.x + 1) / 2 * width;
+            int leftEdge = (v1.position.x + 1) / 2 * width;
+            int rightEdge = (v2.position.x + 1) / 2 * width;
             int diff = rightEdge - leftEdge;
             
             for (int pixel = leftEdge > 0 ? leftEdge : 0; pixel < (rightEdge < width ? rightEdge : width); pixel++)
@@ -128,14 +118,14 @@ int main() {
                 if (t < 0 || t > 1) {
                     continue;
                 }
-                float depth = v1.y * (1-t) + v2.y * t;
+                float depth = v1.position.y * (1-t) + v2.position.y * t;
                 if (depth < 0 || depth > 1) {
                     continue;
                 }
                 if (depth < depthBuffer[pixel])
                 {
                     depthBuffer[pixel] = depth;
-                    frameBuffer[pixel] = b2d::Color::Red();
+                    frameBuffer[pixel] = v1.color * (1-t) + v2.color * t;
                 }
             }
         }

@@ -7,6 +7,7 @@
 #include "bModel.hpp"
 #include "bMath.hpp"
 #include "bColor.hpp"
+#include "bVertex.hpp"
 
 namespace b2d  // Basic 2D
 {
@@ -43,19 +44,15 @@ namespace b2d  // Basic 2D
             m_window->draw(sfVerts.data(), sfVerts.size(), sf::PrimitiveType::Lines);
         }
 
-        void draw(b2d::Model model, b2d::Matrix3 view, b2d::Color col)
+        void draw(b2d::Model model, b2d::Matrix3 view)
         {
             std::vector<sf::Vertex> sfVerts;
-            for (b2d::Vector2 vert : model.getWorldVertices()) {
-                b2d::Vector2 pos = view * vert;
+            for (b2d::Vertex vert : model.getWorldVertices()) {
+                b2d::Vector2 pos = view * vert.position;
+                b2d::Color col = vert.color;
                 sfVerts.push_back(sf::Vertex(sf::Vector2f(pos.x, pos.y), sf::Color(col.r, col.g, col.b, col.a)));
             }
             m_window->draw(sfVerts.data(), sfVerts.size(), sf::PrimitiveType::Lines);
-        }
-
-        void draw(b2d::Model model, b2d::Matrix3 view)
-        {
-            draw(model, view, model.getColor());
         }
 
         void clear()

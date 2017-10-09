@@ -4,39 +4,50 @@
 
 #include "bMath.hpp"
 #include "bColor.hpp"
+#include "bVertex.hpp"
 
 namespace b2d
 {
     class Model
     {
     private:
-        std::vector<b2d::Vector2> vertices;
+        std::vector<b2d::Vertex> vertices;
         std::vector<int> indices;
 
         b2d::Matrix3 translation;
         b2d::Matrix3 rotation;
         b2d::Matrix3 scale;
-
-        b2d::Color color;
         
     public:
         Model()
         {
         }
 
-        Model(std::vector<b2d::Vector2> vertices, std::vector<int> indices)
-        : vertices(vertices), indices(indices)
+        Model(std::vector<b2d::Vector2> corners, std::vector<int> indices, b2d::Color col)
+        : indices(indices)
         {
+            vertices.reserve(corners.size());
+            for (b2d::Vector2 corner : corners)
+            {
+                vertices.push_back(b2d::Vertex(corner, col, b2d::Vector2::Zero()));
+            }
         }
+
+        Model(std::vector<b2d::Vertex> vertices, std::vector<int> indices)
+        : vertices(vertices), indices(indices)
+        {}
 
         void setColor(b2d::Color col)
         {
-            color = col;
+            for (int i = 0; i < vertices.size(); i++)
+            {
+                vertices[i].color = col;
+            }
         }
 
         void setColor(float r, float g, float b)
         {
-            color = b2d::Color(r, g, b);
+            setColor(b2d::Color(r, g, b));
         }
 
         void setScale(float x, float y)
@@ -74,28 +85,29 @@ namespace b2d
             return indices.size();
         }
         
-        b2d::Vector2 getVertex(int index)
+        b2d::Vertex getVertex(int index)
         {
             return vertices.at(indices.at(index));
         }
 
-        std::vector<b2d::Vector2> getModelVertices()
+        std::vector<b2d::Vertex> getModelVertices()
         {
-            std::vector<b2d::Vector2> v;
+            std::vector<b2d::Vertex> v;
             for (int i = 0; i < getVertexCount(); i++) {
                 v.push_back(getVertex(i));
             }
             return v;
         }
 
-        std::vector<b2d::Vector2> getWorldVertices()
+        std::vector<b2d::Vertex> getWorldVertices()
         {
             b2d::Matrix3 mat = getTransformMatrix();
-            std::vector<b2d::Vector2> v;
+            std::vector<b2d::Vertex> vs;
             for (int i = 0; i < getVertexCount(); i++) {
-                v.push_back(mat * getVertex(i));
+                b2d::Vertex v = getVertex(i);
+                vs.push_back(b2d::Vertex(mat * v.position, v.color, (rotation * scale * v.normal).toNormal()));
             }
-            return v;
+            return vs;
         }
 
         b2d::Matrix3 getTransformMatrix()
@@ -103,18 +115,13 @@ namespace b2d
             return translation * rotation * scale;
         }
 
-        b2d::Color getColor()
+        static Model Rectangle(float width, float height, b2d::Color color)
         {
-            return color;
-        }
-
-        static Model Square()
-        {
-            std::vector<b2d::Vector2> squareV = {
-                b2d::Vector2(1, 1),
-                b2d::Vector2(-1, 1),
-                b2d::Vector2(-1, -1),
-                b2d::Vector2(1, -1)
+            std::vector<b2d::Vertex> squareV = {
+                b2d::Vertex(b2d::Vector2( width/2,  height/2), color, b2d::Vector2(1, 1).toNormal()),
+                b2d::Vertex(b2d::Vector2(-width/2,  height/2), color, b2d::Vector2(-1, 1).toNormal()),
+                b2d::Vertex(b2d::Vector2(-width/2, -height/2), color, b2d::Vector2(-1, -1).toNormal()),
+                b2d::Vertex(b2d::Vector2( width/2, -height/2), color, b2d::Vector2(1, -1).toNormal())
             };
             std::vector<int> squareI = {
                 0, 1,
@@ -125,18 +132,23 @@ namespace b2d
             return Model(squareV, squareI);
         }
 
-        static Model Camera()
+        static Model Square(float size, b2d::Color color)
+        {
+            return Rectangle(size, size, color);
+        }
+
+        static Model Camera(float size, b2d::Color color)
         {
             std::vector<b2d::Vector2> cameraV = {
-                b2d::Vector2(0, 0), b2d::Vector2(1, 2), b2d::Vector2(-1, 2),
-                b2d::Vector2(1, 0), b2d::Vector2(-1, 0),
-                b2d::Vector2(1, -3), b2d::Vector2(-1, -3)
+                b2d::Vector2(0, 0), b2d::Vector2(size, 2*size), b2d::Vector2(-size, 2*size),
+                b2d::Vector2(size, 0), b2d::Vector2(-size, 0),
+                b2d::Vector2(size, -3*size), b2d::Vector2(-size, -3*size)
             };
             std::vector<int> cameraI = {
                 0, 1,  0, 2,
                 3, 4,  4, 6,  6, 5,  5, 3
             };
-            return Model(cameraV, cameraI);
+            return Model(cameraV, cameraI, color);
         }
 
         static Model Grid(float extend, float oneFlagWidth)
@@ -157,7 +169,7 @@ namespace b2d
                 0, 2,  8, 9,  10, 11,
                 1, 3,  4, 5,  6, 7
             };
-            return Model(gridV, gridI);
+            return Model(gridV, gridI, b2d::Color::Black());
         }
     };
 
