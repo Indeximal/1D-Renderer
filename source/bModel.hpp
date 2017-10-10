@@ -138,7 +138,7 @@ namespace b2d
         static Model Camera(float size, b2d::Color color)
         {
             std::vector<b2d::Vector2> cameraV = {
-                b2d::Vector2(0, 0), b2d::Vector2(size, 2*size), b2d::Vector2(-size, 2*size),
+                b2d::Vector2(0, 0), b2d::Vector2(10*size, 10*size), b2d::Vector2(-10*size, 10*size),
                 b2d::Vector2(size, 0), b2d::Vector2(-size, 0),
                 b2d::Vector2(size, -3*size), b2d::Vector2(-size, -3*size)
             };

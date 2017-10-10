@@ -14,6 +14,26 @@ namespace b2d  // Basic 2D
         sf::ContextSettings m_settings;
         sf::VideoMode m_screenSize;
         sf::RenderWindow* m_window;
+
+        bool m_shouldClose = false;
+
+        void updateEvents()
+        {
+            sf::Event event;
+            while (m_window->pollEvent(event))
+            {
+                switch (event.type){
+                    case sf::Event::Closed :
+                        m_shouldClose = true;
+                        break;
+                    default:
+                        break;
+
+                }
+            }
+
+        }
+
     public:
         Screen(std::string name, int width, int height)
         : m_screenSize(sf::VideoMode(width, height))
@@ -93,16 +113,16 @@ namespace b2d  // Basic 2D
             m_window->display();
         }
 
+        b2d::Vector2 getMousePosition()
+        {
+            sf::Vector2i pos = sf::Mouse::getPosition(*m_window);
+            return b2d::Vector2(pos.x, pos.y);
+        }
+
         bool shouldClose()
         {
-            sf::Event event;
-            while (m_window->pollEvent(event)) {
-                // std::cout << event.type << std::endl;
-                if (event.type == sf::Event::Closed) {
-                    return true;
-                }
-            }
-            return false;
+            updateEvents();
+            return m_shouldClose;
         }
 
         void close()

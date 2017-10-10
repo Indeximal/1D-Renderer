@@ -18,6 +18,8 @@ namespace b2d
 
         b2d::Color m_clearColor = b2d::Color::White();
 
+        bool hasLight = false;
+        b2d::Vector2 lightPosition;
         
     public:
         Renderer1D(b2d::Screen* screen, int x, int y, int width, int height)
@@ -33,6 +35,12 @@ namespace b2d
             m_clearColor = cc;
         }
 
+        void setLightPosition(b2d::Vector2 lPos)
+        {
+            hasLight = true;
+            lightPosition = lPos;
+        }
+
         void clear()
         {
             for (int i = 0; i < m_w; i++)
@@ -42,7 +50,11 @@ namespace b2d
             }
         }
 
-        void render(b2d::Model model, b2d::Matrix3 projMat, b2d::Matrix3 viewMat){
+        void render(b2d::Model model, b2d::Matrix3 projMat, b2d::Vector2 viewPos, float viewRot)
+        {
+            b2d::Matrix3 viewT = b2d::Matrix3::translate2d(-viewPos.x, -viewPos.y);
+            b2d::Matrix3 viewR = b2d::Matrix3::rotate2d(-viewRot);
+            b2d::Matrix3 viewMat = viewR * viewT; // Inversed
 
             std::vector<b2d::Vertex> wVerts = model.getWorldVertices();
 
@@ -66,6 +78,11 @@ namespace b2d
                 int leftEdge = (proj1.x + 1) / 2 * m_w;
                 int rightEdge = (proj2.x + 1) / 2 * m_w;
                 int diff = rightEdge - leftEdge;
+
+                b2d::Vector2 n01 = pos2 - pos1;
+                b2d::Vector2 n0 = n01.toNormal();
+                b2d::Vector2 normal1 = b2d::Vector2(n0.y, -n0.x);
+                b2d::Vector2 normal2 = b2d::Vector2(-n0.y, n0.x);
                 
                 for (int pixel = std::max(0, leftEdge); pixel < std::min(m_w, rightEdge); pixel++)
                 {
@@ -73,6 +90,14 @@ namespace b2d
                     if (t < 0 || t > 1) {
                         continue;
                     }
+
+                    b2d::Vector2 pos = pos1 * (1-t) + pos2 * t;
+                    b2d::Vector2 toView = b2d::Vector2::Direction(pos, viewPos);
+                    b2d::Vector2 toLight = b2d::Vector2::Direction(pos, lightPosition);
+                    b2d::Vector2 normal = toView.dot(normal1) > toView.dot(normal2) ? normal1 : normal2;
+
+                    float diffusion = (normal.dot(toLight) + 1.5) / 2.5;
+
                     float depth = proj1.y * (1-t) + proj2.y * t;
                     if (depth < 0 || depth > 1) {
                         continue;
@@ -80,7 +105,7 @@ namespace b2d
                     if (depth < m_depthBuffer[pixel])
                     {
                         m_depthBuffer[pixel] = depth;
-                        m_frameBuffer[pixel] = v1.color * (1-t) + v2.color * t;
+                        m_frameBuffer[pixel] = (v1.color * (1-t) + v2.color * t) * diffusion;
                     }
                 }
             }

@@ -14,8 +14,10 @@ int main() {
     b2d::Screen screen("2D Perspective", width, 600);
 
     b2d::Renderer1D renderer(&screen, 0, 573, width, 4);
+    renderer.setLightPosition(b2d::Vector2(0, 0));
 
     b2d::Matrix3 topDownViewMat = b2d::Matrix3::translate2d(250, 250) * b2d::Matrix3::scale2d(100) * b2d::Matrix3::scale2d(1, -1);
+    b2d::Matrix3 mouseMat =  b2d::Matrix3::scale2d(0.01) * b2d::Matrix3::scale2d(1, -1) * b2d::Matrix3::translate2d(-250, -250);
     b2d::Matrix3 rTDViewMat = b2d::Matrix3::translate2d(750, 400) * b2d::Matrix3::scale2d(150) * b2d::Matrix3::scale2d(1, -1);
 
     b2d::Model gridL = b2d::Model::Grid(2.5, 0.1);
@@ -37,20 +39,11 @@ int main() {
         models.push_back(square3);
     }
 
-    b2d::Vector2 cameraPos(2, 0);
-    float cameraRot = 3.14 / 2;
-
     b2d::Model camera = b2d::Model::Camera(0.1, b2d::Color::Blue());
-    camera.setPosition(cameraPos);
-    camera.setRotation(cameraRot);
-
-    b2d::Matrix3 viewT = b2d::Matrix3::translate2d(-cameraPos.x, -cameraPos.y);
-    b2d::Matrix3 viewR = b2d::Matrix3::rotate2d(-cameraRot);
-    b2d::Matrix3 viewMat = viewR * viewT; // Inversed
 
     float perspNearClip = 0.1;
     float perspFarClip = 3;
-    float zoomFactor = 0.8; //std::atan(3.14 - perspFOV)
+    float zoomFactor = 1; //std::atan(3.14 - perspFOV)
     // float perspFOV = 90 / 180 * 3.14;
 
     b2d::Matrix3 perspTranslation = b2d::Matrix3::translate2d(0, -perspNearClip);
@@ -60,7 +53,7 @@ int main() {
     auto lastFrame = std::chrono::high_resolution_clock::now();
     auto startTime = std::chrono::high_resolution_clock::now();
 
-    std::cout << "started" << std::endl;
+    // std::cout << "started" << std::endl;
     int frameCounter = 0;
 
     while (!screen.shouldClose()) {
@@ -69,6 +62,20 @@ int main() {
         double tss = std::chrono::duration_cast<std::chrono::microseconds>(thisFrame - startTime).count() / 1000000.0;
 
         screen.clear();
+
+        float cameraRot = 3.14 / 2;
+        b2d::Vector2 cameraPos = screen.getMousePosition();
+        // std::cout << cameraPos.x << " " << cameraPos.y << std::endl;
+        cameraPos = mouseMat * cameraPos;
+        // std::cout << cameraPos.x << " " << cameraPos.y << std::endl;
+        
+
+        camera.setPosition(cameraPos);
+        camera.setRotation(cameraRot);
+
+        b2d::Matrix3 viewT = b2d::Matrix3::translate2d(-cameraPos.x, -cameraPos.y);
+        b2d::Matrix3 viewR = b2d::Matrix3::rotate2d(-cameraRot);
+        b2d::Matrix3 viewMat = viewR * viewT; // Inversed
 
         // Left: Top Down
         for (b2d::Model model : models)
@@ -95,7 +102,7 @@ int main() {
         renderer.clear();
         for (b2d::Model model : models)
         {
-            renderer.render(model, perspMat, viewMat);
+            renderer.render(model, perspMat, cameraPos, cameraRot);
         }
 
         renderer.draw();

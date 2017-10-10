@@ -80,7 +80,7 @@ namespace b2d
 
         float getLenght()
         {
-            return std::sqrt(x * x + y + y);
+            return std::sqrt(x * x + y * y);
         }
 
         Vector2 toNormal()
@@ -182,4 +182,17 @@ namespace b2d
         }
 
     };
+
+}
+
+std::ostream &operator<<(std::ostream &os, b2d::Matrix3 const &mat3) { 
+    os << "[" << mat3.columns[0].x << " " << mat3.columns[1].x << " " << mat3.columns[2].x << "]\n";
+    os << "|" << mat3.columns[0].y << " " << mat3.columns[1].y << " " << mat3.columns[2].y << "|\n";
+    os << "[" << mat3.columns[0].z << " " << mat3.columns[1].z << " " << mat3.columns[2].z << "]";
+    return os;
+}
+
+std::ostream &operator<<(std::ostream &os, b2d::Vector2 const &v) {
+    os << "(" << v.x << "," << v.y << ")";
+    return os;
 }
