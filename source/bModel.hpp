@@ -130,6 +130,27 @@ namespace b2d
             return Model(squareV, squareI);
         }
 
+        static Model ColoredRect(float width, float height, b2d::Color c1, b2d::Color c2, b2d::Color c3, b2d::Color c4)
+        {
+            std::vector<b2d::Vertex> squareV = {
+                b2d::Vertex(b2d::Vector2( width/2,  height/2), c1, b2d::Vector2(0, 1).toNormal()),
+                b2d::Vertex(b2d::Vector2(-width/2,  height/2), c1, b2d::Vector2(0, 1).toNormal()),
+                b2d::Vertex(b2d::Vector2(-width/2,  height/2), c2, b2d::Vector2(-1, 0).toNormal()),
+                b2d::Vertex(b2d::Vector2(-width/2, -height/2), c2, b2d::Vector2(-1, 0).toNormal()),
+                b2d::Vertex(b2d::Vector2(-width/2, -height/2), c3, b2d::Vector2(0, -1).toNormal()),
+                b2d::Vertex(b2d::Vector2( width/2, -height/2), c3, b2d::Vector2(0, -1).toNormal()),
+                b2d::Vertex(b2d::Vector2( width/2, -height/2), c4, b2d::Vector2(1, 0).toNormal()),
+                b2d::Vertex(b2d::Vector2( width/2,  height/2), c4, b2d::Vector2(1, 0).toNormal()),
+            };
+            std::vector<int> squareI = {
+                0, 1,
+                2, 3,
+                4, 5,
+                6, 7
+            };
+            return Model(squareV, squareI);
+        }
+
         static Model Square(float size, b2d::Color color)
         {
             return Rectangle(size, size, color);

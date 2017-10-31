@@ -29,7 +29,7 @@ int main() {
         square.setPosition(1, 2);
         square.setRotation(2);
         models.push_back(square);
-        b2d::Model square2 = b2d::Model::Rectangle(0.7, 0.9, b2d::Color::Red());
+        b2d::Model square2 = b2d::Model::ColoredRect(0.7, 0.9, b2d::Color::Red(), b2d::Color::Green(), b2d::Color::Blue(), b2d::Color::Yellow());
         square2.setPosition(-0.5, 0.5);
         square2.setRotation(1);
         models.push_back(square2);

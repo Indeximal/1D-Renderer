@@ -96,6 +96,7 @@ namespace b2d
                     b2d::Vector2 toLight = b2d::Vector2::Direction(pos, lightPosition);
                     b2d::Vector2 normal = toView.dot(normal1) > toView.dot(normal2) ? normal1 : normal2;
 
+                    // TODO improve/fix lighting
                     float diffusion = (normal.dot(toLight) + 1.5) / 2.5;
 
                     float depth = proj1.y * (1-t) + proj2.y * t;
@@ -105,7 +106,8 @@ namespace b2d
                     if (depth < m_depthBuffer[pixel])
                     {
                         m_depthBuffer[pixel] = depth;
-                        m_frameBuffer[pixel] = (v1.color * (1-t) + v2.color * t) * diffusion;
+                        m_frameBuffer[pixel] = v1.color * (1-t) + v2.color * t;
+                        // m_frameBuffer[pixel] = (v1.color * (1-t) + v2.color * t) * diffusion;
                     }
                 }
             }
@@ -118,6 +120,8 @@ namespace b2d
             }
 
             m_screen->setPixels(m_x, m_y, m_w, 1, m_frameBuffer, m_w);
+            m_screen->setPixels(m_x, m_y+1, m_w, 1, m_frameBuffer, m_w);
+            m_screen->setPixels(m_x, m_y+2, m_w, 1, m_frameBuffer, m_w);
         }
 
         void deactivate()
