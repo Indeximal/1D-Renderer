@@ -78,14 +78,14 @@ namespace b2d
             return x * other.x + y * other.y;
         }
 
-        float getLenght()
+        float getLength()
         {
             return std::sqrt(x * x + y * y);
         }
 
         Vector2 toNormal()
         {
-            float l = getLenght();
+            float l = getLength();
             if (l == 0) return Zero();
             return Vector2(x / l, y / l);
         }

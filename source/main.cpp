@@ -14,7 +14,11 @@ int main() {
     b2d::Screen screen("2D Perspective", width, 600);
 
     b2d::Renderer1D renderer(&screen, 0, 573, width, 4);
-    renderer.setLightPosition(b2d::Vector2(0, 0));
+    
+    b2d::Vector2 lightPos = b2d::Vector2(0.95, 0.3);
+    b2d::Model light = b2d::Model::Cross(0.15, b2d::Color::Yellow());
+    light.setPosition(lightPos);
+    renderer.setLightPosition(lightPos);
 
     b2d::Matrix3 topDownViewMat = b2d::Matrix3::translate2d(250, 250) * b2d::Matrix3::scale2d(100) * b2d::Matrix3::scale2d(1, -1);
     b2d::Matrix3 mouseMat =  b2d::Matrix3::scale2d(0.01) * b2d::Matrix3::scale2d(1, -1) * b2d::Matrix3::translate2d(-250, -250);
@@ -25,7 +29,7 @@ int main() {
 
     std::vector<b2d::Model> models;
     {
-        b2d::Model square = b2d::Model::Rectangle(1.3, 1.8, b2d::Color::Green());
+        b2d::Model square = b2d::Model::FlatShadedRect(1.3, 1.8, b2d::Color::Green());
         square.setPosition(1, 2);
         square.setRotation(2);
         models.push_back(square);
@@ -33,7 +37,7 @@ int main() {
         square2.setPosition(-0.5, 0.5);
         square2.setRotation(1);
         models.push_back(square2);
-        b2d::Model square3 = b2d::Model::Square(1.4, b2d::Color::Blue());
+        b2d::Model square3 = b2d::Model::FlatShadedRect(1.4, 1.4, b2d::Color::Blue());
         square3.setPosition(0.6, -1.2);
         square3.setRotation(3);
         models.push_back(square3);
@@ -84,6 +88,7 @@ int main() {
         }
         screen.draw(gridL, topDownViewMat);
         screen.draw(camera, topDownViewMat); 
+        screen.draw(light, topDownViewMat); 
 
         // Right: Top Down Camera 
         std::vector<b2d::Vector2> tdVerts;

@@ -79,10 +79,10 @@ namespace b2d
                 int rightEdge = (proj2.x + 1) / 2 * m_w;
                 int diff = rightEdge - leftEdge;
 
-                b2d::Vector2 n01 = pos2 - pos1;
-                b2d::Vector2 n0 = n01.toNormal();
-                b2d::Vector2 normal1 = b2d::Vector2(n0.y, -n0.x);
-                b2d::Vector2 normal2 = b2d::Vector2(-n0.y, n0.x);
+                // b2d::Vector2 n01 = pos2 - pos1;
+                // b2d::Vector2 n0 = n01.toNormal();
+                // b2d::Vector2 normal1 = b2d::Vector2(n0.y, -n0.x);
+                // b2d::Vector2 normal2 = b2d::Vector2(-n0.y, n0.x);
                 
                 for (int pixel = std::max(0, leftEdge); pixel < std::min(m_w, rightEdge); pixel++)
                 {
@@ -92,12 +92,13 @@ namespace b2d
                     }
 
                     b2d::Vector2 pos = pos1 * (1-t) + pos2 * t;
+                    b2d::Vector2 normal = (v1.normal * (1-t) + v2.normal * t).toNormal();
                     b2d::Vector2 toView = b2d::Vector2::Direction(pos, viewPos);
                     b2d::Vector2 toLight = b2d::Vector2::Direction(pos, lightPosition);
-                    b2d::Vector2 normal = toView.dot(normal1) > toView.dot(normal2) ? normal1 : normal2;
 
                     // TODO improve/fix lighting
                     float diffusion = (normal.dot(toLight) + 1.5) / 2.5;
+                    float viewDot = normal.dot(toView);
 
                     float depth = proj1.y * (1-t) + proj2.y * t;
                     if (depth < 0 || depth > 1) {
@@ -106,7 +107,8 @@ namespace b2d
                     if (depth < m_depthBuffer[pixel])
                     {
                         m_depthBuffer[pixel] = depth;
-                        m_frameBuffer[pixel] = v1.color * (1-t) + v2.color * t;
+                        // m_frameBuffer[pixel] = v1.color * (1-t) + v2.color * t;
+                        m_frameBuffer[pixel] = b2d::Color::White() * viewDot;
                         // m_frameBuffer[pixel] = (v1.color * (1-t) + v2.color * t) * diffusion;
                     }
                 }

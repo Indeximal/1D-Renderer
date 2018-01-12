@@ -151,6 +151,24 @@ namespace b2d
             return Model(squareV, squareI);
         }
 
+        static Model FlatShadedRect(float width, float height, b2d::Color color){
+            return ColoredRect(width, height, color, color, color, color);
+        }
+
+        static Model Cross(float size, b2d::Color color){
+            std::vector<b2d::Vector2> crossV = {
+                b2d::Vector2(size, size),
+                b2d::Vector2(-size, -size),
+                b2d::Vector2(-size, size),
+                b2d::Vector2(size, -size)
+            };
+            std::vector<int> crossI = {
+                0, 1,
+                2, 3
+            };
+            return Model(crossV, crossI, color);
+        }
+
         static Model Square(float size, b2d::Color color)
         {
             return Rectangle(size, size, color);
